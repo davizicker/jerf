@@ -33,9 +33,10 @@ navegador (`file://`) também funciona.
 
 ## Como editar pelo site (sem mexer em código)
 
-- **Adicionar sistema**: botão "+ Adicionar novo sistema" no topo da página.
+- **Adicionar sistema**: dentro de um grupo, botão "+ Adicionar novo sistema"
+  no topo da página (só aparece depois que você entra em algum grupo).
 - **Editar um sistema**: passe o mouse sobre o card e clique no lápis (título,
-  sigla/cor do selo, grupo, documentos/links).
+  sigla/cor do selo, ícone, grupo, documentos/links).
 - **Vários documentos por sistema**: no editor do sistema, clique em
   "+ Adicionar documento" quantas vezes precisar. Se o sistema tiver mais de
   um link, ao clicar no card a pessoa escolhe qual abrir.
@@ -43,8 +44,12 @@ navegador (`file://`) também funciona.
   campo "Grupo".
 - **Criar um grupo**: tile tracejado "+ Novo grupo" na tela inicial.
 - **Editar um grupo**: lápis ao lado do nome do grupo (dentro do grupo) ou no
-  card do grupo na tela inicial — nome e cor. Um grupo só pode ser excluído
-  se estiver vazio (mova ou apague os sistemas primeiro).
+  card do grupo na tela inicial — nome, cor e ícone. Um grupo só pode ser
+  excluído se estiver vazio (mova ou apague os sistemas primeiro).
+- **Usar uma imagem própria como ícone**: no editor do sistema ou do grupo,
+  em "Ícone" clique em "Escolher imagem" e selecione um arquivo do
+  computador. A imagem é recortada ao quadrado e reduzida automaticamente;
+  "Remover imagem" volta pro selo colorido com a sigla/ícone de pasta.
 
 ### ⚠️ Importante: onde essas edições ficam salvas
 

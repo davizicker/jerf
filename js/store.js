@@ -92,6 +92,7 @@
         id: uid("grp"),
         name: (data.name || "").trim() || "Novo grupo",
         color: data.color || "blue",
+        iconImage: data.iconImage || null,
         order: state.groups.length,
       };
       state.groups.push(group);
@@ -104,6 +105,7 @@
       patch = patch || {};
       if (typeof patch.name === "string" && patch.name.trim()) group.name = patch.name.trim();
       if (typeof patch.color === "string") group.color = patch.color;
+      if (Object.prototype.hasOwnProperty.call(patch, "iconImage")) group.iconImage = patch.iconImage || null;
       persist();
       return group;
     },
@@ -122,6 +124,7 @@
         name: (data.name || "").trim() || "Novo sistema",
         tag: (data.tag || "").trim().slice(0, 3).toUpperCase() || "??",
         color: data.color || "blue",
+        iconImage: data.iconImage || null,
         groupId: data.groupId || (state.groups[0] && state.groups[0].id) || null,
         documents: Array.isArray(data.documents) ? data.documents : [],
       };
@@ -136,6 +139,7 @@
       if (typeof patch.name === "string" && patch.name.trim()) system.name = patch.name.trim();
       if (typeof patch.tag === "string" && patch.tag.trim()) system.tag = patch.tag.trim().slice(0, 3).toUpperCase();
       if (typeof patch.color === "string") system.color = patch.color;
+      if (Object.prototype.hasOwnProperty.call(patch, "iconImage")) system.iconImage = patch.iconImage || null;
       if (typeof patch.groupId === "string") system.groupId = patch.groupId;
       if (Array.isArray(patch.documents)) system.documents = patch.documents;
       persist();

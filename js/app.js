@@ -12,6 +12,8 @@
   var selectedSystemColor = "blue";
   var selectedGroupColor = "blue";
   var pendingDocuments = [];
+  var pendingSystemIcon = null;
+  var pendingGroupIcon = null;
 
   // ---------- helpers ----------
 
@@ -37,6 +39,37 @@
   function fallbackTag(name) {
     var letters = (name || "").replace(/[^A-Za-zÀ-ÿ0-9]/g, "");
     return (letters.slice(0, 2) || "??").toUpperCase();
+  }
+
+  // Lê o arquivo escolhido, recorta ao quadrado central e reduz pra um
+  // ícone pequeno (evita estourar o localStorage com fotos grandes).
+  function readImageAsSquareDataUrl(file, size) {
+    size = size || 128;
+    return new Promise(function (resolve, reject) {
+      if (!file || file.type.indexOf("image/") !== 0) {
+        reject(new Error("Selecione um arquivo de imagem."));
+        return;
+      }
+      var reader = new FileReader();
+      reader.onerror = function () { reject(new Error("Não foi possível ler o arquivo.")); };
+      reader.onload = function () {
+        var img = new Image();
+        img.onerror = function () { reject(new Error("Não foi possível abrir essa imagem.")); };
+        img.onload = function () {
+          var side = Math.min(img.width, img.height);
+          var sx = (img.width - side) / 2;
+          var sy = (img.height - side) / 2;
+          var canvas = document.createElement("canvas");
+          canvas.width = size;
+          canvas.height = size;
+          var ctx = canvas.getContext("2d");
+          ctx.drawImage(img, sx, sy, side, side, 0, 0, size, size);
+          resolve(canvas.toDataURL("image/png"));
+        };
+        img.src = reader.result;
+      };
+      reader.readAsDataURL(file);
+    });
   }
 
   function el(tag, className, html) {
@@ -134,6 +167,47 @@
     });
   }
 
+  // ---------- ícone (imagem customizada) ----------
+
+  function renderIconPreview(prefix, imageDataUrl, color, opts) {
+    var preview = document.getElementById(prefix + "-icon-preview");
+    var clearBtn = document.getElementById(prefix + "-icon-clear");
+    preview.innerHTML = "";
+    clearBtn.hidden = !imageDataUrl;
+    if (imageDataUrl) {
+      var img = document.createElement("img");
+      img.src = imageDataUrl;
+      img.alt = "";
+      preview.appendChild(img);
+      return;
+    }
+    var badge = el("div", "icon-preview-badge", opts.svg || "");
+    badge.style.background = gradient(color);
+    if (!opts.svg) badge.textContent = opts.text || "";
+    preview.appendChild(badge);
+  }
+
+  function refreshSystemIconPreview() {
+    var tagValue = document.getElementById("sm-tag").value.trim() || fallbackTag(document.getElementById("sm-name").value);
+    renderIconPreview("sm", pendingSystemIcon, selectedSystemColor, { text: tagValue });
+  }
+
+  function refreshGroupIconPreview() {
+    renderIconPreview("gm", pendingGroupIcon, selectedGroupColor, { svg: FOLDER_SVG });
+  }
+
+  function setupIconPicker(fileId, pickId, clearId, onChange, onClear) {
+    var fileInput = document.getElementById(fileId);
+    document.getElementById(pickId).addEventListener("click", function () { fileInput.click(); });
+    fileInput.addEventListener("change", function (e) {
+      var file = e.target.files && e.target.files[0];
+      e.target.value = "";
+      if (!file) return;
+      readImageAsSquareDataUrl(file, 128).then(onChange).catch(function (err) { alert(err.message); });
+    });
+    document.getElementById(clearId).addEventListener("click", onClear);
+  }
+
   function populateGroupSelect(select, selectedId) {
     select.innerHTML = "";
     Store.getGroups().forEach(function (g) {
@@ -161,7 +235,10 @@
     populateGroupSelect(document.getElementById("sm-group"), system ? system.groupId : (presetGroupId || Store.getGroups()[0].id));
 
     selectedSystemColor = system ? system.color : "blue";
-    renderColorSwatches(document.getElementById("sm-colors"), selectedSystemColor, function (c) { selectedSystemColor = c; });
+    renderColorSwatches(document.getElementById("sm-colors"), selectedSystemColor, function (c) { selectedSystemColor = c; refreshSystemIconPreview(); });
+
+    pendingSystemIcon = system ? (system.iconImage || null) : null;
+    refreshSystemIconPreview();
 
     pendingDocuments = system ? system.documents.map(function (d) { return { id: d.id, label: d.label, url: d.url }; }) : [];
     renderDocumentEditor();
@@ -221,7 +298,7 @@
       .map(function (d) { return { id: d.id, label: (d.label || "").trim() || "Acessar", url: normalizeUrl(d.url) }; })
       .filter(function (d) { return d.url; });
 
-    var payload = { name: name, tag: tag, color: selectedSystemColor, groupId: groupId, documents: docs };
+    var payload = { name: name, tag: tag, color: selectedSystemColor, iconImage: pendingSystemIcon, groupId: groupId, documents: docs };
     if (editingSystemId) Store.updateSystem(editingSystemId, payload);
     else Store.createSystem(payload);
 
@@ -243,6 +320,12 @@
       var rows = document.querySelectorAll("#sm-documents .doc-editor-label");
       if (rows.length) rows[rows.length - 1].focus();
     });
+
+    document.getElementById("sm-name").addEventListener("input", refreshSystemIconPreview);
+    document.getElementById("sm-tag").addEventListener("input", refreshSystemIconPreview);
+    setupIconPicker("sm-icon-file", "sm-icon-pick", "sm-icon-clear",
+      function (dataUrl) { pendingSystemIcon = dataUrl; refreshSystemIconPreview(); },
+      function () { pendingSystemIcon = null; refreshSystemIconPreview(); });
 
     document.getElementById("sm-delete").addEventListener("click", function () {
       if (!editingSystemId) return;
@@ -267,7 +350,10 @@
     document.getElementById("gm-name").value = group ? group.name : "";
 
     selectedGroupColor = group ? group.color : "blue";
-    renderColorSwatches(document.getElementById("gm-colors"), selectedGroupColor, function (c) { selectedGroupColor = c; });
+    renderColorSwatches(document.getElementById("gm-colors"), selectedGroupColor, function (c) { selectedGroupColor = c; refreshGroupIconPreview(); });
+
+    pendingGroupIcon = group ? (group.iconImage || null) : null;
+    refreshGroupIconPreview();
 
     var count = group ? Store.countByGroup(group.id) : 0;
     document.getElementById("gm-delete").hidden = !group;
@@ -284,7 +370,7 @@
       e.preventDefault();
       if (!form.checkValidity()) { form.reportValidity(); return; }
       var name = document.getElementById("gm-name").value.trim();
-      var payload = { name: name, color: selectedGroupColor };
+      var payload = { name: name, color: selectedGroupColor, iconImage: pendingGroupIcon };
 
       if (editingGroupId) {
         Store.updateGroup(editingGroupId, payload);
@@ -312,6 +398,10 @@
           render();
         });
     });
+
+    setupIconPicker("gm-icon-file", "gm-icon-pick", "gm-icon-clear",
+      function (dataUrl) { pendingGroupIcon = dataUrl; refreshGroupIconPreview(); },
+      function () { pendingGroupIcon = null; refreshGroupIconPreview(); });
   }
 
   // ---------- doc picker ----------
@@ -355,8 +445,15 @@
     card.title = system.documents.length ? "Abrir " + system.name : "Adicionar link em " + system.name;
 
     var badge = el("div", "tool-badge", "");
-    badge.style.background = gradient(system.color);
-    badge.textContent = system.tag;
+    if (system.iconImage) {
+      var badgeImg = document.createElement("img");
+      badgeImg.src = system.iconImage;
+      badgeImg.alt = "";
+      badge.appendChild(badgeImg);
+    } else {
+      badge.style.background = gradient(system.color);
+      badge.textContent = system.tag;
+    }
     card.appendChild(badge);
 
     card.appendChild(el("div", "tool-name", "")).textContent = system.name;
@@ -396,8 +493,15 @@
     card.title = "Abrir grupo " + group.name;
     card.style.setProperty("--group-accent", (Store.PALETTE[group.color] || Store.PALETTE.blue).from);
 
-    var badge = el("div", "group-badge", FOLDER_SVG);
-    badge.style.background = gradient(group.color);
+    var badge = el("div", "group-badge", group.iconImage ? "" : FOLDER_SVG);
+    if (group.iconImage) {
+      var badgeImg = document.createElement("img");
+      badgeImg.src = group.iconImage;
+      badgeImg.alt = "";
+      badge.appendChild(badgeImg);
+    } else {
+      badge.style.background = gradient(group.color);
+    }
     card.appendChild(badge);
 
     card.appendChild(el("div", "group-name", "")).textContent = group.name;
