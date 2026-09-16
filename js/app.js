@@ -466,6 +466,7 @@
   function renderToolbar(mode, payload) {
     var toolbar = document.getElementById("toolbar-title");
     toolbar.innerHTML = "";
+    document.getElementById("btn-add-system").hidden = mode !== "group";
 
     if (mode === "search") {
       toolbar.appendChild(el("span", "toolbar-heading", "")).textContent = "Resultados da busca";
