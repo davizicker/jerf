@@ -53,38 +53,30 @@
 </header>
 
 <main id="conteudo">
-  <section class="hero">
-    <h1 class="hero-title">Portal de Sistemas</h1>
-    <p class="hero-subtitle">Acesso rápido aos sistemas e planilhas do setor. Digite para buscar um sistema pelo nome.</p>
-
-    <div class="search-wrap">
-      <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <circle cx="11" cy="11" r="7"></circle>
-        <path d="m21 21-4.3-4.3"></path>
-      </svg>
-      <input type="text" id="search-input" class="search-input" placeholder="Buscar sistema… (ex: SEI, ponto, 13º)" autocomplete="off" aria-label="Buscar sistema">
-      <button type="button" id="search-clear" class="search-clear" aria-label="Limpar busca" hidden>×</button>
-    </div>
-  </section>
-
-  <section class="tools-section" aria-label="Sistemas disponíveis">
-    <div class="tools-meta">
-      <span id="tools-count" class="tools-count"></span>
-    </div>
-    <div id="tools-grid" class="tools-grid"></div>
-    <p id="tools-empty" class="tools-empty" hidden>Nenhum sistema encontrado para essa busca.</p>
-  </section>
-
-  <section class="notices-section" aria-label="Painel de recados">
-    <div class="notices-card">
-      <div class="notices-header">
-        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M4 4h16v12H7l-3 3z"></path>
+  <section class="hero-compact">
+    <div class="hero-row">
+      <h1 class="hero-title">Portal de Sistemas</h1>
+      <div class="search-wrap">
+        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="11" cy="11" r="7"></circle>
+          <path d="m21 21-4.3-4.3"></path>
         </svg>
-        <h2>Painel de Recados</h2>
+        <input type="text" id="search-input" class="search-input" placeholder="Buscar sistema… (ex: SEI, ponto, 13º)" autocomplete="off" aria-label="Buscar sistema">
+        <button type="button" id="search-clear" class="search-clear" aria-label="Limpar busca" hidden>×</button>
       </div>
-      <div id="notices-list" class="notices-list"></div>
     </div>
+  </section>
+
+  <div class="toolbar">
+    <div class="toolbar-left" id="toolbar-title"></div>
+    <button type="button" id="btn-add-system" class="btn btn-primary">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
+      Adicionar novo sistema
+    </button>
+  </div>
+
+  <section class="view-section" aria-label="Sistemas e grupos">
+    <div id="view-root"></div>
   </section>
 </main>
 
@@ -93,7 +85,122 @@
   <p class="site-footer-sub">Governo de Minas · Educação &nbsp;—&nbsp; <span id="footer-year"></span></p>
 </footer>
 
+<!-- Modal: criar/editar sistema -->
+<dialog id="system-modal" class="modal">
+  <form method="dialog" class="modal-card" id="system-form">
+    <div class="modal-header">
+      <h3 id="system-modal-title">Novo sistema</h3>
+      <button type="button" class="modal-close" data-close aria-label="Fechar">×</button>
+    </div>
+
+    <div class="modal-body">
+      <label class="field">
+        <span class="field-label">Título do sistema</span>
+        <input type="text" id="sm-name" class="field-input" placeholder="Ex: BIBLIOTECA" required>
+      </label>
+
+      <div class="field-row">
+        <label class="field field-tag">
+          <span class="field-label">Sigla do selo</span>
+          <input type="text" id="sm-tag" class="field-input" maxlength="3" placeholder="Ex: BI">
+        </label>
+        <label class="field field-group">
+          <span class="field-label">Grupo</span>
+          <select id="sm-group" class="field-input"></select>
+        </label>
+      </div>
+
+      <div class="field">
+        <span class="field-label">Cor do selo</span>
+        <div id="sm-colors" class="color-swatches"></div>
+      </div>
+
+      <div class="field">
+        <div class="field-label-row">
+          <span class="field-label">Documentos e links</span>
+          <button type="button" id="sm-add-doc" class="btn-link">+ Adicionar documento</button>
+        </div>
+        <div id="sm-documents" class="doc-editor-list"></div>
+        <p class="field-hint">Se o sistema tiver mais de um documento, ao clicar nele a pessoa vai poder escolher qual abrir.</p>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button type="button" id="sm-delete" class="btn btn-danger-ghost">Excluir sistema</button>
+      <div class="modal-footer-right">
+        <button type="button" class="btn btn-ghost" data-close>Cancelar</button>
+        <button type="submit" class="btn btn-primary" id="sm-save">Salvar</button>
+      </div>
+    </div>
+  </form>
+</dialog>
+
+<!-- Modal: criar/editar grupo -->
+<dialog id="group-modal" class="modal">
+  <form method="dialog" class="modal-card modal-card-sm" id="group-form">
+    <div class="modal-header">
+      <h3 id="group-modal-title">Novo grupo</h3>
+      <button type="button" class="modal-close" data-close aria-label="Fechar">×</button>
+    </div>
+
+    <div class="modal-body">
+      <label class="field">
+        <span class="field-label">Nome do grupo</span>
+        <input type="text" id="gm-name" class="field-input" placeholder="Ex: Principais" required>
+      </label>
+
+      <div class="field">
+        <span class="field-label">Cor</span>
+        <div id="gm-colors" class="color-swatches"></div>
+      </div>
+
+      <p id="gm-hint" class="field-hint" hidden>Este grupo tem sistemas dentro. Mova ou exclua os sistemas antes de excluir o grupo.</p>
+    </div>
+
+    <div class="modal-footer">
+      <button type="button" id="gm-delete" class="btn btn-danger-ghost">Excluir grupo</button>
+      <div class="modal-footer-right">
+        <button type="button" class="btn btn-ghost" data-close>Cancelar</button>
+        <button type="submit" class="btn btn-primary">Salvar</button>
+      </div>
+    </div>
+  </form>
+</dialog>
+
+<!-- Modal: escolher documento (sistemas com mais de 1 link) -->
+<dialog id="doc-picker-modal" class="modal">
+  <div class="modal-card modal-card-sm">
+    <div class="modal-header">
+      <h3 id="doc-picker-title">Escolha um documento</h3>
+      <button type="button" class="modal-close" data-close aria-label="Fechar">×</button>
+    </div>
+    <div class="modal-body">
+      <div id="doc-picker-list" class="doc-picker-list"></div>
+    </div>
+  </div>
+</dialog>
+
+<!-- Modal: confirmação genérica -->
+<dialog id="confirm-modal" class="modal">
+  <div class="modal-card modal-card-sm">
+    <div class="modal-header">
+      <h3 id="confirm-title">Confirmar</h3>
+      <button type="button" class="modal-close" data-close aria-label="Fechar">×</button>
+    </div>
+    <div class="modal-body">
+      <p id="confirm-message"></p>
+    </div>
+    <div class="modal-footer">
+      <div class="modal-footer-right">
+        <button type="button" class="btn btn-ghost" data-close>Cancelar</button>
+        <button type="button" class="btn btn-danger" id="confirm-ok">Confirmar</button>
+      </div>
+    </div>
+  </div>
+</dialog>
+
 <script src="js/data.js"></script>
+<script src="js/store.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>
