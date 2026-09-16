@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>
+  (function () {
+    try {
+      var saved = localStorage.getItem("portal-theme");
+      if (saved === "light" || saved === "dark") {
+        document.documentElement.setAttribute("data-theme", saved);
+      }
+    } catch (e) { /* localStorage indisponível */ }
+  })();
+</script>
+<title>Portal SRE Metropolitana A · Divisão de Pessoal</title>
+<meta name="description" content="Portal de acesso rápido aos sistemas do Setor de Pagamento — Divisão de Pessoal, SRE Metropolitana A.">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0b1220">
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+
+<header class="site-header">
+  <div class="header-inner">
+    <div class="brand">
+      <img class="brand-logo" src="assets/logo-mg-educacao.jpg" alt="Governo de Minas Gerais — Educação" width="60" height="49">
+      <div class="brand-org">
+        <span class="brand-org-line">Superintendência Regional de Ensino Metropolitana A</span>
+        <span class="brand-org-line brand-org-sub">Divisão de Pessoal &nbsp;·&nbsp; Setor de Pagamento</span>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <div class="clock" id="clock" aria-live="off">
+        <span id="clock-greeting">Olá</span>
+        <span class="clock-sep">·</span>
+        <span id="clock-time">00:00</span>
+      </div>
+      <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Alternar tema claro/escuro" title="Alternar tema">
+        <svg class="icon icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="4.5"></circle>
+          <path d="M12 2.5v2.5M12 19v2.5M4.6 4.6l1.8 1.8M17.6 17.6l1.8 1.8M2.5 12H5M19 12h2.5M4.6 19.4l1.8-1.8M17.6 6.4l1.8-1.8"></path>
+        </svg>
+        <svg class="icon icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a6.8 6.8 0 0 0 10.5 10.5Z"></path>
+        </svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main id="conteudo">
+  <section class="hero">
+    <h1 class="hero-title">Portal de Sistemas</h1>
+    <p class="hero-subtitle">Acesso rápido aos sistemas e planilhas do setor. Digite para buscar um sistema pelo nome.</p>
+
+    <div class="search-wrap">
+      <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="11" cy="11" r="7"></circle>
+        <path d="m21 21-4.3-4.3"></path>
+      </svg>
+      <input type="text" id="search-input" class="search-input" placeholder="Buscar sistema… (ex: SEI, ponto, 13º)" autocomplete="off" aria-label="Buscar sistema">
+      <button type="button" id="search-clear" class="search-clear" aria-label="Limpar busca" hidden>×</button>
+    </div>
+  </section>
+
+  <section class="tools-section" aria-label="Sistemas disponíveis">
+    <div class="tools-meta">
+      <span id="tools-count" class="tools-count"></span>
+    </div>
+    <div id="tools-grid" class="tools-grid"></div>
+    <p id="tools-empty" class="tools-empty" hidden>Nenhum sistema encontrado para essa busca.</p>
+  </section>
+
+  <section class="notices-section" aria-label="Painel de recados">
+    <div class="notices-card">
+      <div class="notices-header">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M4 4h16v12H7l-3 3z"></path>
+        </svg>
+        <h2>Painel de Recados</h2>
+      </div>
+      <div id="notices-list" class="notices-list"></div>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <p>Portal interno · SRE Metropolitana A — Divisão de Pessoal · Setor de Pagamento</p>
+  <p class="site-footer-sub">Governo de Minas · Educação &nbsp;—&nbsp; <span id="footer-year"></span></p>
+</footer>
+
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
